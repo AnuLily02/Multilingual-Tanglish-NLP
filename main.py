@@ -11,7 +11,7 @@ app = FastAPI(
 )
 
 # XLM-RoBERTa handles phonetic Latin-script Tamil tokens
-MODEL_NAME = "xlm-roberta-base"
+MODEL_NAME = ""./fine_tuned_tanglish""
 
 print("Loading Tanglish tokenizer and pre-trained model...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
