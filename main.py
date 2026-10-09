@@ -11,15 +11,20 @@ app = FastAPI(
 )
 
 # XLM-RoBERTa handles phonetic Latin-script Tamil tokens
-MODEL_NAME = ""./fine_tuned_tanglish""
+MODEL_NAME = "./fine_tuned_tanglish"
 
 print("Loading Tanglish tokenizer and pre-trained model...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-# Mapping output classes: 0 -> Negative, 1 -> Neutral, 2 -> Positive
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=3)
+
+# Set num_labels=2 to match your fine-tuned checkpoint output layer
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_NAME, 
+    num_labels=2
+)
 model.eval()
 
-LABEL_MAPPING = {0: "Negative", 1: "Neutral", 2: "Positive"}
+# Updated label mapping for 2 output classes
+LABEL_MAPPING = {0: "Negative", 1: "Positive"}
 
 class TextPayload(BaseModel):
     text: str
