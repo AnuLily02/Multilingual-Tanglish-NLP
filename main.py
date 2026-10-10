@@ -1,48 +1,42 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-# Initialize FastAPI application
 app = FastAPI(
     title="Tanglish Sentiment Analysis API",
     description="API for analyzing Romanized Tamil + English mixed text.",
-    version="1.0.0"
+    version="1.0.0",
 )
 
-# XLM-RoBERTa handles phonetic Latin-script Tamil tokens
 MODEL_NAME = "./fine_tuned_tanglish"
 
-print("Loading Tanglish tokenizer and pre-trained model...")
+print("Loading fine-tuned Tanglish model...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-
-# Set num_labels=2 to match your fine-tuned checkpoint output layer
 model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_NAME, 
-    num_labels=2
+    MODEL_NAME, num_labels=2
 )
 model.eval()
 
-# Updated label mapping for 2 output classes
-LABEL_MAPPING = {0: "Negative", 1: "Positive"}
+# Correct dataset mapping: Index 0 is Positive, Index 1 is Negative
+LABEL_MAPPING = {0: "Positive", 1: "Negative"}
+
 
 class TextPayload(BaseModel):
     text: str
+
 
 @app.get("/")
 def read_root():
     return {"message": "Tanglish Sentiment Analyzer API is up and running!"}
 
+
 @app.post("/predict")
 def predict_sentiment(payload: TextPayload):
-    # Tokenize Tanglish input text
     inputs = tokenizer(
-        payload.text,
-        return_tensors="pt",
-        truncation=True,
-        max_length=128
+        payload.text, return_tensors="pt", truncation=True, max_length=128
     )
-    
+
     with torch.no_grad():
         outputs = model(**inputs)
         probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1)
@@ -52,5 +46,5 @@ def predict_sentiment(payload: TextPayload):
     return {
         "input_text": payload.text,
         "sentiment": LABEL_MAPPING[predicted_class],
-        "confidence_score": round(confidence, 4)
+        "confidence_score": round(confidence, 4),
     }
